@@ -125,12 +125,11 @@
 		"Quake",
 		"Light",
 		"Dark",
-		"String",
-		"Rumble",
+		"Spider",
 		"Magma",
-		"Human: Buddha",
+		"Buddha",
 		"Sand",
-		"Bird: Phoenix",
+		"Phoenix",
 		"Dough"
 	}
 	local RenMon = {
@@ -2102,7 +2101,7 @@ end
 			Title = "Raids"
 		}),
 		Combat = Window:AddTab({
-			Title = "Combat"
+			Title = "Figthing Styles"
 		}),
 		Travel = Window:AddTab({
 			Title = "Teleport"
@@ -2128,8 +2127,8 @@ end
 	if World3 then
 		Tabs.Main:AddSection("AUTO FARM")
 		local TeleportToggle = Tabs.Main:AddToggle("tpSubmarineWorker", {
-			Title = "Bay đến NPC Farm Level Trên 2600",
-			Description = "Teleport to Submarine Worker (Level >= 2600, World 3 only)",
+			Title = "Teleport to NPC to farm levels above 2650",
+			Description = "Teleport to Submarine Worker (Level >= 2650, World 3 only)",
 			Default = false,
 			Callback = function(value)
 				_G.tpSubmarineWorker = value
@@ -2172,7 +2171,7 @@ end
 	end
 	local FarmLevel = Tabs.Main:AddToggle("FarmLevel", {
 		Title = "Auto Farm Level",
-		Description = "Famr level cày cấp",
+		Description = "Farm level",
 		Default = false
 	})
 	FarmLevel:OnChanged(function(Value)
@@ -9018,12 +9017,11 @@ end
 		"Quake",
 		"Light",
 		"Dark",
-		"String",
-		"Rumble",
+		"Spider",
 		"Magma",
-		"Human: Buddha",
+		"Buddha",
 		"Sand",
-		"Bird: Phoenix",
+		"Phoenix",
 		"Dough"
 	}
 	local Q = Tabs.Raids:AddDropdown("Q", {
@@ -9057,20 +9055,18 @@ end
 						_G.SelectChip = "Light"
 					elseif GetBP("Dark-Dark") then
 						_G.SelectChip = "Dark"
-					elseif GetBP("String-String") then
-						_G.SelectChip = "String"
-					elseif GetBP("Rumble-Rumble") then
-						_G.SelectChip = "Rumble"
+					elseif GetBP("Spider-Spider") then
+						_G.SelectChip = "Spider"
 					elseif GetBP("Magma-Magma") then
 						_G.SelectChip = "Magma"
-					elseif GetBP("Human-Human: Buddha Fruit") then
-						_G.SelectChip = "Human: Buddha"
+					elseif GetBP("Buddha Fruit") then
+						_G.SelectChip = "Buddha"
 					elseif GetBP("Dough-Dough") then
 						_G.SelectChip = "Dough"
 					elseif GetBP("Sand-Sand") then
 						_G.SelectChip = "Sand"
-					elseif GetBP("Bird-Bird: Phoenix") then
-						_G.SelectChip = "Bird: Phoenix"
+					elseif GetBP("Phoenix") then
+						_G.SelectChip = "Phoenix"
 					else
 						_G.SelectChip = "Ice"
 					end
@@ -9089,7 +9085,7 @@ end
 	})
 	Tabs.Raids:AddButton({
 		Title = "Buy Dungeon Chips [Devil Fruit]",
-		Description = "Use your lowest fruit in your bag",
+		Description = "Use your lowest fruit in your Iventory",
 		Callback = function()
 			if GetBP("Special Microchip") then
 				return
@@ -11145,7 +11141,7 @@ end)
 	end)
 	iceWalk = Tabs.Misc:AddToggle("iceWalk", {
 		Title = "Turn on Ice Walk",
-		Description = "Ice walk just like walk on water but have ice effect",
+		Description = "Ice walk just like walk on water but have Ice Effect",
 		Default = false
 	})
 	iceWalk:OnChanged(function(Value)
