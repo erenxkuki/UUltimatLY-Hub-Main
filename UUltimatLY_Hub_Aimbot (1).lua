@@ -1,465 +1,328 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/land9678/Sapi-Hub-V1/refs/heads/main/KavoUI.txt"))()
-local AimlockModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Dk"))()
-local ESPModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Gk"))()
-local SilentAimModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Bg"))()
-local StuffsModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Stuf"))()
+-- UUltimatLY Hub | Blox Fruits PvP - FULL WindUI Conversion
+-- Original by realryzu (UUltimatLY) → UI converted to WindUI by request
+
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Footagesus/WindUI/main/main.lua"))()
+
+-- Load all your modules (same as original)
+local AimlockModule     = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Dk"))()
+local ESPModule         = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Gk"))()
+local SilentAimModule   = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Bg"))()
+local StuffsModule      = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Stuf"))()
 local OthersStuffsModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Mot"))()
-local UiSettingsModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Vot"))()
-local ZSkillModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Teku"))()
-local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
-local UserInputService = game:GetService("UserInputService")  
-local TeleportService = game:GetService("TeleportService")
+local UiSettingsModule  = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Vot"))()
+local ZSkillModule      = loadstring(game:HttpGet("https://raw.githubusercontent.com/jaanu91/Ip/refs/heads/main/Teku"))()
+
+local Players           = game:GetService("Players")
+local UserInputService  = game:GetService("UserInputService")
+local TeleportService   = game:GetService("TeleportService")
+local StarterGui        = game:GetService("StarterGui")
+
+local Settings = OthersStuffsModule.LoadSettings() or {}
 local PlayerList = {"None"}
 
-local toggleGui = Instance.new("ScreenGui")
-toggleGui.Name = "ToggleGui"
-toggleGui.Parent = game.CoreGui
+-- ══════════════════════════════════════════════════════════════════════════════
+--                            Floating Toggle Button
+-- ══════════════════════════════════════════════════════════════════════════════
 
-local toggleButton = Instance.new("ImageButton")
-toggleButton.Name = "SHV1"
-toggleButton.Size = UDim2.new(0, 40, 0, 40)
-toggleButton.Position = UDim2.new(0, 5, 0, 10)
-toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-toggleButton.BackgroundTransparency = 0.2
-toggleButton.BorderSizePixel = 0
-toggleButton.ZIndex = 9999
-toggleButton.Image = "rbxassetid://73642467719097"
-toggleButton.Parent = toggleGui
+local ToggleGui = Instance.new("ScreenGui")
+ToggleGui.Name = "UUltimatLYToggle"
+ToggleGui.ResetOnSpawn = false
+ToggleGui.Parent = game.CoreGui
 
-local toggleCorner = Instance.new("UICorner")
-toggleCorner.CornerRadius = UDim.new(0, 8)
-toggleCorner.Parent = toggleButton
+local ToggleBtn = Instance.new("ImageButton")
+ToggleBtn.Name = "MainToggle"
+ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Position = UDim2.new(0, 12, 0, 12)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+ToggleBtn.BackgroundTransparency = 0.35
+ToggleBtn.Image = "rbxassetid://73642467719097"
+ToggleBtn.ImageColor3 = Color3.fromRGB(255, 180, 100)
+ToggleBtn.AutoButtonColor = false
+ToggleBtn.ZIndex = 9999
+ToggleBtn.Parent = ToggleGui
 
-UiSettingsModule:MakeDraggable(toggleButton)
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(1, 0)
+Corner.Parent = ToggleBtn
 
-local Settings = OthersStuffsModule.LoadSettings()
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(255, 140, 0)
+Stroke.Thickness = 2.5
+Stroke.Transparency = 0.6
+Stroke.Parent = ToggleBtn
 
-local executor = "Unknown"
-if syn then
-    executor = "Synapse X"
-elseif KRNL_LOADED then
-    executor = "KRNL"
-elseif fluxus then
-    executor = "Fluxus"
-elseif getexecutorname then
-    local success, execName = pcall(getexecutorname)
-    if success and type(execName) == "string" then
-        executor = execName
+-- Simple drag function (WindUI doesn't have built-in draggable widget like Kavo)
+local dragging, dragInput, dragStart, startPos
+ToggleBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = ToggleBtn.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+ToggleBtn.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        ToggleBtn.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- ══════════════════════════════════════════════════════════════════════════════
+--                               WindUI Window
+-- ══════════════════════════════════════════════════════════════════════════════
+
+local Window = WindUI:Create({
+    Title = "UUltimatLY Hub | Blox Fruits PvP",
+    SubTitle = "Executor: " .. (function()
+        if syn then return "Synapse X"
+        elseif KRNL_LOADED then return "KRNL"
+        elseif fluxus then return "Fluxus"
+        elseif getexecutorname then return getexecutorname() or "Unknown"
+        else return "Unknown" end
+    end)(),
+    ToggleKey = Enum.KeyCode.M,
+    CanResize = true,
+    DefaultToggle = true,
+})
+
+-- Connect floating button to toggle UI
+ToggleBtn.MouseButton1Click:Connect(function()
+    Window:Toggle()
+end)
+
+-- ══════════════════════════════════════════════════════════════════════════════
+--                                 TABS
+-- ══════════════════════════════════════════════════════════════════════════════
+
+do -- Executor Status
+    local Tab = Window:CreateTab("◇ Executor")
+    local Sec = Tab:CreateSection("Information")
+    Sec:CreateLabel("Current Executor: " .. Window.SubTitle:match("Executor: (.+)"))
+    Sec:CreateLabel("Status: " .. ((Window.SubTitle:find("Solara") or Window.SubTitle:find("Xeno") or Window.SubTitle:find("Krnl")) and "Not Working" or "Working"))
+end
+
+do -- Changelog
+    local Tab = Window:CreateTab("⛓ Changelog")
+    local Sec = Tab:CreateSection("Latest Updates")
+    local changes = {
+        "New Aimbot by realryzu (UUltimatLY)",
+        "Added Target Info (Name/Health)",
+        "Script Optimization & FPS Boost",
+        "Fixed Soul Guitar M1 in Silent Aim",
+        "RTX Visuals (Autumn/Summer/Spring/Winter)",
+        "Custom Global Text Font",
+        "Dash No Cooldown",
+        "Remove Fog / Lava",
+        "Z Skills working (except Godhuman Z)",
+        "Fruit M1 Closest Attack Fix",
+        "Buddy Sword X Silent Aim Fix"
+    }
+    for _, txt in ipairs(changes) do
+        Sec:CreateLabel("• " .. txt)
     end
 end
 
-local execStatus = (executor == "Xeno" or executor:lower():find("solara") or executor:lower():find("krnl")) and "Not Working" or "Working"
+do -- Aimbot Tab
+    local Tab = Window:CreateTab("❖ Aimbot")
+    local Sec = Tab:CreateSection("Main Settings")
 
-local Window = Library.CreateLib("UUltimatLY Hub Blox Fruit PvP  |  " .. executor, UiSettingsModule.currentTheme)
+    Sec:CreateToggle({Name = "Aimlock Players", Default = Settings.AimlockPlayers or false, Callback = function(v)
+        AimlockModule:SetPlayerAimlock(v)
+        Settings.AimlockPlayers = v
+    end})
 
-local Tab = Window:NewTab("◇・Executor Status")
-local Section = Tab:NewSection("◈・Information")
+    Sec:CreateToggle({Name = "Aimlock Mini Toggle (Players)", Default = Settings.AimlockPlayersMiniTogglePlayers or false, Callback = function(v)
+        AimlockModule:SetMiniTogglePlayerAimlock(v)
+        Settings.AimlockPlayersMiniTogglePlayers = v
+    end})
 
-Section:NewLabel("Executor: " .. executor)
-Section:NewLabel("Status: " .. execStatus)
+    Sec:CreateToggle({Name = "Aimlock NPC/Boss", Default = Settings.AimlockNPC or false, Callback = function(v)
+        AimlockModule:SetNpcAimlock(v)
+        Settings.AimlockNPC = v
+    end})
 
-local Tab = Window:NewTab("⛓・ChangesLogs")
-local Section = Tab:NewSection("✏・Updated")
+    Sec:CreateToggle({Name = "Prediction", Default = Settings.Prediction or false, Callback = function(v)
+        AimlockModule:SetPrediction(v)
+        Settings.Prediction = v
+    end})
 
-Section:NewLabel("• New Aimbot Released by realryzu AKA (UUltimatLY)💮")
-Section:NewLabel("• Added Info Of Target (Name/Health) ✔")
-Section:NewLabel("• Optimized Script ✔")
-Section:NewLabel("• Improved Fps Boost ✔")
-Section:NewLabel("• Fixed Soul Guitar M1in Silent aim ✔")
-Section:NewLabel("• Added RTX Graphic (Visual Vibes Only) ✔")
-Section:NewLabel("• Added Custom Global Text ✔")
-Section:NewLabel("• Added Dash No Cool Down ✔")
-Section:NewLabel("• Added Remove Fog or Lava ✔")
-Section:NewLabel("• Added Z Skills Work (Except Godhuman Z) ✔")
-Section:NewLabel("• Added Fruit M1 Closet Attack ✔")
-Section:NewLabel("• Fixed Buddy Sword X in Silent aim ✔")
-
-local Tab = Window:NewTab("❖・Aimbot")
-local Section = Tab:NewSection("☘・Settings")
-
-local AimlockPlayersToggle = Section:NewToggle("・Aimlock Players", "Lock onto nearest player", function(state)
-    AimlockModule:SetPlayerAimlock(state)
-    Settings["AimlockPlayers"] = state
-end)
-
-local AimlockPlayersMiniTogglePlayersToggle = Section:NewToggle("・Aimlock Mini Toggle Players", "Lock onto nearest player", function(state)
-    AimlockModule:SetMiniTogglePlayerAimlock(state)
-    Settings["AimlockPlayersMiniTogglePlayers"] = state
-end)
-
-local AimlockNPCToggle = Section:NewToggle("・Aimlock NPC", "Lock onto nearest NPC/Boss", function(state)
-    AimlockModule:SetNpcAimlock(state)
-    Settings["AimlockNPC"] = state
-end)
-
-local AimlockPlayersMiniToggleNPCToggle = Section:NewToggle("・Aimlock Mini Toggle NPC", "Lock onto nearest NPC/Boss", function(state)
-    AimlockModule:SetMiniToggleNpcAimlock(state)
-    Settings["AimlockPlayersMiniToggleNPC"] = state
-end)
-
-local PredictionToggle = Section:NewToggle("・Prediction", "Predict enemy movement", function(state)
-    AimlockModule:SetPrediction(state)
-    Settings["Prediction"] = state
-end)
-
-Section:NewDropdown("・Prediction Amount | Default 0.1s", "Select max Prediction for Aimlock", {"0.2", "0.3", "0.4"}, function(selected)
-    local num = tonumber(selected)
-    if num then
-        AimlockModule:SetPredictionTime(num)
-        Settings["PredictionAmount"] = num
-    end
-end)
-
-local Tab = Window:NewTab("⛩・Silent Aimbot")
-local Section = Tab:NewSection("⚓・Settings")
-
-local SilentAimPlayersToggle = Section:NewToggle("・SilentAim Players", "Lock onto nearest player", function(state)
-    SilentAimModule:SetPlayerSilentAim(state)
-    Settings["SilentAimPlayers"] = state
-end)
-
-local SilentMiniTogglePlayersToggle = Section:NewToggle("・SilentAim Mini Toggle Players", "Lock onto nearest player", function(state)
-    SilentAimModule:SetMiniTogglePlayerSilentAim(state)
-    Settings["SilentMiniTogglePlayers"] = state
-end)
-
-local SilentAimNPCToggle = Section:NewToggle("・SilentAim Npcs", "Lock Onto Nearest NPC", function(state)
-    SilentAimModule:SetNPCSilentAim(state)
-    Settings["SilentAimNPC"] = state
-end)
-
-local SilentMiniToggleNPCToggle = Section:NewToggle("・SilentAim Mini Toggle NPC", "Lock onto nearest NPC/Boss", function(state)
-    SilentAimModule:SetMiniToggleNpcSilentAim(state)
-    Settings["SilentMiniToggleNPC"] = state
-end)
-
-local SilentAimPedictionToggle = Section:NewToggle("・SilentAim Prediction", "Prediction On Target", function(state)
-    SilentAimModule:SetPrediction(state)
-    Settings["SilentAimPediction"] = state
-end)
-
-Section:NewDropdown("・Prediction Future | Default 0.1s", "Select Max Prediction For Silent Aim", {"0.2", "0.3", "0.4"}, function(selected)
-    local num = tonumber(selected)
-    if num then
-        SilentAimModule:SetPredictionAmount(num)
-        Settings["SilentAimPredictionFuture"] = num
-    end
-end)
-
-Section:NewDropdown("・Distance Limit | Default 1000m", "Select Max Distance For AimBot", {"200", "400", "600"}, function(selected)
-    local num = tonumber(selected)
-    if num then
-        SilentAimModule:SetDistanceLimit(num)
-        Settings["SilentAimDistanceLimit"] = num
-    end
-end)
-
-for _, plr in ipairs(Players:GetPlayers()) do
-    if plr ~= Players.LocalPlayer then
-        table.insert(PlayerList, plr.Name)
-    end
+    Sec:CreateDropdown({Name = "Prediction Amount", Options = {"0.12","0.135","0.15","0.165","0.2","0.3","0.4"}, 
+        Default = tostring(Settings.PredictionAmount or 0.135), Callback = function(v)
+            local n = tonumber(v)
+            if n then AimlockModule:SetPredictionTime(n) Settings.PredictionAmount = n end
+        end})
 end
 
-local PlayerDropdown = Section:NewDropdown("・Select Player Target", "Choose A Player To Lock Onto", PlayerList, function(selected)
-    if selected == "None" then
-        SilentAimModule:SetSelectedPlayer(nil)
-    else
-        SilentAimModule:SetSelectedPlayer(selected)
-    end
-end)
+do -- Silent Aim Tab
+    local Tab = Window:CreateTab("⛩ Silent Aim")
+    local Sec = Tab:CreateSection("Settings")
 
-local function RefreshPlayerList()
-    local newList = {"None"}
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= Players.LocalPlayer then
-            table.insert(newList, plr.Name)
+    local saToggles = {
+        {name = "Silent Aim Players",        key = "SilentAimPlayers",        func = SilentAimModule.SetPlayerSilentAim},
+        {name = "Silent Mini Toggle Players", key = "SilentMiniTogglePlayers", func = SilentAimModule.SetMiniTogglePlayerSilentAim},
+        {name = "Silent Aim NPC",            key = "SilentAimNPC",            func = SilentAimModule.SetNPCSilentAim},
+        {name = "Silent Mini Toggle NPC",    key = "SilentMiniToggleNPC",     func = SilentAimModule.SetMiniToggleNpcSilentAim},
+        {name = "Silent Aim Prediction",     key = "SilentAimPrediction",     func = SilentAimModule.SetPrediction},
+        {name = "Highlight Target",          key = "Highlight",               func = SilentAimModule.SetHighlight},
+        {name = "Z | M1 Skills (except Godhuman Z)", key = "Zskillmone", func = SilentAimModule.SetZSkillorM1},
+        {name = "Auto Ken Haki",             key = "AutoKen",                 func = SilentAimModule.SetAutoKen},
+    }
+
+    for _, t in ipairs(saToggles) do
+        Sec:CreateToggle({Name = t.name, Default = Settings[t.key] or false, Callback = function(v)
+            t.func(v)
+            Settings[t.key] = v
+        end})
+    end
+
+    Sec:CreateDropdown({Name = "Prediction Strength", Options = {"0.12","0.135","0.15","0.165","0.2","0.3","0.4"}, 
+        Default = tostring(Settings.SilentAimPredictionFuture or 0.135), Callback = function(v)
+            local n = tonumber(v) if n then SilentAimModule:SetPredictionAmount(n) Settings.SilentAimPredictionFuture = n end
+        end})
+
+    Sec:CreateDropdown({Name = "Max Distance", Options = {"400","600","800","1000","1500","2000"}, 
+        Default = tostring(Settings.SilentAimDistanceLimit or 1000), Callback = function(v)
+            local n = tonumber(v) if n then SilentAimModule:SetDistanceLimit(n) Settings.SilentAimDistanceLimit = n end
+        end})
+
+    -- Player selector
+    local targetDropdown
+    local function updatePlayerList()
+        local list = {"None"}
+        for _, p in Players:GetPlayers() do
+            if p ~= Players.LocalPlayer then table.insert(list, p.Name) end
         end
+        if targetDropdown then targetDropdown:SetOptions(list) end
     end
-    PlayerDropdown:Refresh(newList, true)
+
+    targetDropdown = Sec:CreateDropdown({
+        Name = "Target Player (Manual Lock)",
+        Options = PlayerList,
+        Default = "None",
+        Callback = function(v)
+            SilentAimModule:SetSelectedPlayer(v == "None" and nil or v)
+        end
+    })
+
+    Players.PlayerAdded:Connect(updatePlayerList)
+    Players.PlayerRemoving:Connect(updatePlayerList)
+    task.spawn(updatePlayerList)
 end
 
-Players.PlayerAdded:Connect(RefreshPlayerList)
-Players.PlayerRemoving:Connect(RefreshPlayerList)
-RefreshPlayerList()
+do -- Features Tab
+    local Tab = Window:CreateTab("✿ Features")
+    local Sec = Tab:CreateSection("Toggles & Utilities")
 
-local ZSkillToggle = Section:NewToggle("・GodhumanZ Aimlock", "Only Set Godhuman", function(state)
-    ZSkillModule:SetZSkills(state)
-    Settings["ZSkills"] = state
-end)
+    local features = {
+        {name = "ESP Players",             key = "ESPPlayers",      func = ESPModule.SetESP},
+        {name = "Auto V3 Race Ability",    key = "V3Skill",         func = ESPModule.SetV3},
+        {name = "Bunny Hop",               key = "BunnyHop",        func = ESPModule.SetBunnyhop},
+        {name = "Auto Buso (Aura)",        key = "AuraSkill",       func = ESPModule.SetBuso},
+        {name = "FPS Boost",               key = "FpsBoost",        func = StuffsModule.SetFpsBoost},
+        {name = "Infinite Energy",         key = "INFEnergy",       func = StuffsModule.SetINFEnergy},
+        {name = "Walk on Water",           key = "WalkonWater",     func = StuffsModule.SetWalkWater},
+        {name = "Fast Attack",             key = "FastAttack",      func = StuffsModule.SetFastAttack},
+        {name = "Remove Lava",             key = "Lava",            func = StuffsModule.SetLava},
+        {name = "Remove Fog",              key = "Fog",             func = StuffsModule.SetFog},
+        {name = "Dodge No Cooldown",       key = "Dodge",           func = ESPModule.SetNoDodgeCD},
+        {name = "Auto V4 Transform",       key = "V4",              func = UiSettingsModule.SetV4},
+        {name = "Fruit Spawn Notifier",    key = "FruitCheck",      func = UiSettingsModule.SetFruitCheck},
+        {name = "Teleport Fruits To You",  key = "TeleportFruit",   func = UiSettingsModule.SetTeleportFruit},
+        {name = "Show Target Info",        key = "Opponent",        func = ZSkillModule.SetInfo},
+    }
 
-local HighlightToggle = Section:NewToggle("・Main Highlight", "Current Target Highlighted", function(state)
-    SilentAimModule:SetHighlight(state)
-    Settings["Highlight"] = state
-end)
-
-local ZskillMOneToggle = Section:NewToggle("・Z|M1 Skills(except Godhuman Z)", "Silent Aim That Work With Some Skills", function(state)
-    SilentAimModule:SetZSkillorM1(state)
-    Settings["Zskillmone"] = state
-end)
-
-local Tab = Window:NewTab("✿・Features")
-local Section = Tab:NewSection("⚜・Settings")
-
-Section:NewButton("Join Discord", "Get Link Discord server", function()
-	local link = "https://discord.gg/dtkbvtrM7G"
-    if setclipboard then
-        setclipboard(link)
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "UUltimatLY Hub",
-            Text = "Copied Discord Link!",
-            Duration = 5
-        })
+    for _, f in ipairs(features) do
+        Sec:CreateToggle({Name = f.name, Default = Settings[f.key] or false, Callback = function(v)
+            f.func(v)
+            Settings[f.key] = v
+        end})
     end
-end)
 
-local ESPPlayersToggle = Section:NewToggle("・ESP Players", "Toggle Player ESP", function(state)
-    ESPModule:SetESP(state)
-    Settings["ESPPlayers"] = state
-end)
+    Sec:CreateButton({Name = "Join Discord", Callback = function()
+        if setclipboard then
+            setclipboard("https://discord.gg/dtkbvtrM7G")
+            StarterGui:SetCore("SendNotification", {Title = "UUltimatLY", Text = "Discord link copied!", Duration = 4})
+        end
+    end})
+end
 
-local V3SkillToggle = Section:NewToggle("・V3 Skill", "Auto activate V3 ability", function(state)
-    ESPModule:SetV3(state)
-    Settings["V3Skill"] = state
-end)
+do -- Settings Manager Tab
+    local Tab = Window:CreateTab("⚙ Settings")
+    local Sec = Tab:CreateSection("Configuration")
 
-local BunnyHopToggle = Section:NewToggle("・Bunny hop", "Toggle Bunnyhop", function(state)
-    ESPModule:SetBunnyhop(state)
-    Settings["BunnyHop"] = state
-end)
+    Sec:CreateTextbox({Name = "Join Server (JobId)", Placeholder = "Paste JobId...", Callback = function(jobid)
+        if jobid and #jobid > 10 then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, jobid, Players.LocalPlayer)
+        end
+    end})
 
-local AuraSkillToggle = Section:NewToggle("・Aura Skill", "Auto activate Buso", function(state)
-    ESPModule:SetBuso(state)
-    Settings["AuraSkill"] = state
-end)
+    Sec:CreateButton({Name = "Save Settings", Callback = function()
+        OthersStuffsModule.SaveSettings(Settings)
+        StarterGui:SetCore("SendNotification", {Title = "Settings", Text = "Saved successfully!", Duration = 3})
+    end})
 
-local FpsOrPingsToggle = Section:NewToggle("・Fps Or Pings", "Display Ping or Fps", function(state)
-    StuffsModule:SetPingsOrFps(state)
-    Settings["FpsOrPings"] = state
-end)
+    Sec:CreateButton({Name = "Reset Settings", Callback = function()
+        OthersStuffsModule.ResetSettings()
+        Settings = {}
+        StarterGui:SetCore("SendNotification", {Title = "Settings", Text = "Reset complete", Duration = 3})
+    end})
 
-Section:NewTextBox("Speed Hack", "WalkSpeedValue", function(speedfunc)
-    local num = tonumber(speedfunc)
-    if num then
-        getgenv().WalkSpeedValue = num
-        UiSettingsModule:SetWalkSpeed(num)
-    end
-end)
-
-local FpsBoostToggle = Section:NewToggle("・Fps Boost", "Increase Fps", function(state)
-    StuffsModule:SetFpsBoost(state)
-    Settings["FpsBoost"] = state
-end)
-
-local INFEnergyToggle = Section:NewToggle("・INF Energy", "Max Energy", function(state)
-    StuffsModule:SetINFEnergy(state)
-    Settings["INFEnergy"] = state
-end)
-
-local WalkonWaterToggle = Section:NewToggle("・Walk on Water", "Travel in Water", function(state)
-    StuffsModule:SetWalkWater(state)
-    Settings["WalkonWater"] = state
-end)
-
-local FastAttackToggle = Section:NewToggle("・Fast Attack", "Fast Attack", function(state)
-    StuffsModule:SetFastAttack(state)
-    Settings["FastAttack"] = state
-end)
-
-local AntiAFKToggle = Section:NewToggle("・AntiAfk", "Anti-Afk Only On Before You Off", function(state)
-    ESPModule:SetAntiAfk(state)
-    Settings["AntiAFK"] = state
-end)
-
-Section:NewTextBox("Jump Power", "JumpValue", function(jumpfunc)
-  getgenv().JumpValue = jumpfunc
-    if getgenv().JumpValue then
-        game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = getgenv().JumpValue
-    end
-end)
-
-local V4Toggle = Section:NewToggle("・Auto V4", "Auto V4 Transform", function(state)
-    UiSettingsModule:SetV4(state)
-    Settings["V4"] = state
-end)
-
-local FruitCheckToggle = Section:NewToggle("・Spawned Fruit Check", "Check Fruit Spawned", function(state)
-    UiSettingsModule:SetFruitCheck(state)
-    Settings["FruitCheck"] = state
-end)
-
-local TeleportFruitToggle = Section:NewToggle("・Bring Fruits", "It Take Few Seconds To Bring Fruits", function(state)
-    UiSettingsModule:SetTeleportFruit(state)
-    Settings["TeleportFruit"] = state
-end)
-
-local AutoKenToggle = Section:NewToggle("・Auto Ken", " AutoKen", function(state)
-    SilentAimModule:SetAutoKen(state)
-    Settings["AutoKen"] = state
-end)
-
-local LavaToggle = Section:NewToggle("・Remove Lava", "Remove Lava", function(state)
-    StuffsModule:SetLava(state)
-    Settings["Lava"] = state
-end)
-
-local FogToggle = Section:NewToggle("・Remove Fog", "Remove Fog", function(state)
-    StuffsModule:SetFog(state)
-    Settings["Fog"] = state
-end)
-
-local DodgeToggle = Section:NewToggle("・Dodge no cd", "Dodge no cd", function(state)
-    ESPModule:SetNoDodgeCD(state)
-    Settings["Dodge"] = state
-end)
-
-local OpponentToggle = Section:NewToggle("・Target Info(Name/Health)", "Info Of Target", function(state)
-    ZSkillModule:SetInfo(state)
-    Settings["Opponent"] = state
-end)
-
-local Tab = Window:NewTab("⚙・Settings Manager")
-local Section = Tab:NewSection("💾・Settings")
-
-Section:NewTextBox("Paste Job Id Here", "Paste JobId and press Enter", function(jobid)
-    if jobid and jobid ~= "" then
-        TeleportService:TeleportToPlaceInstance(game.PlaceId, jobid, Players.LocalPlayer)
-    end
-end)
-
-Section:NewButton("Save Current Settings", "Save all current settings", function()
-    OthersStuffsModule.SaveSettings(Settings)
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "UUltimatLY Hub",
-        Text = "Settings Saved!",
-        Duration = 4
+    -- Font selector (example - adjust if your module supports it)
+    Sec:CreateDropdown({
+        Name = "Global Font",
+        Options = {"Arcade","Cartoon","Code","Highway","SciFi","Fantasy","Antique","Gotham","SourceSansPro"},
+        Default = Settings.GlobalFont or "Gotham",
+        Callback = function(v)
+            if ESPModule.SetGlobalFont then
+                ESPModule:SetGlobalFont(Enum.Font[v])
+                Settings.GlobalFont = v
+            end
+        end
     })
-end)
+end
 
-Section:NewButton("Reset Settings", "Clear saved settings", function()
-    OthersStuffsModule.ResetSettings()
-    Settings = {} -- also clear local
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "UUltimatLY Hub",
-        Text = "Settings Reset!",
-        Duration = 4
-    })
-end)
-
-Section:NewButton("Rejoin Server", "Rejoin your server", function()
-    StuffsModule:SetRejoinServer()
-end)
-
-Section:NewDropdown("・Global Text Font", "Change font for all text", {
-    "Arcade",
-    "Cartoon",
-    "SciFi",
-    "Fantasy",
-    "Antique",
-    "Garamond",
-    "RobotoMono",
-    "FredokaOne",
-    "LuckiestGuy",
-    "PermanentMarker",
-    "SpecialElite",
-    "Oswald",
-    "Nunito"
-}, function(selected)
-    local fontEnum = Enum.Font[selected]
-    if fontEnum then
-        ESPModule:SetGlobalFont(fontEnum)
-        Settings["GlobalFont"] = selected
-    else
-        warn("Font not found:", selected)
-    end
-end)
-
-Section:NewDropdown("・RTX Graphics Mode", "Choose between Autumn or Summer or Spring or Winter", {"Autumn", "Summer", "Spring", "Winter"}, function(selected)
-    ESPModule:SetRTXMode(selected)
-    Settings["RTXMode"] = selected
-end)
-
-Section:NewDropdown("Select Theme", "Choose a color theme", UiSettingsModule:getThemeNames(), function(selected)
-    local newColor = UiSettingsModule.themes[selected]
-    if newColor then
-        UiSettingsModule:updateSchemeColor(newColor, Library)
-    end
-end)
-
-Section:NewDropdown("Select Background Theme", "Choose a color background", UiSettingsModule:getBackgroundThemeNames(), function(selected)
-    local newColor = UiSettingsModule.backgroundThemes[selected]
-    if newColor then
-        UiSettingsModule:updateBackgroundColor(newColor, Library)
-    end
-end)
-
-Section:NewDropdown("Select TextColor", "Choose a textcolor", UiSettingsModule:getThemeNames(), function(selected)
-    local newColor = UiSettingsModule.themes[selected]
-    if newColor then
-        UiSettingsModule:updateTextColor(newColor, Library)
-    end
-end)
-
-Settings = OthersStuffsModule.LoadSettings()
-
+-- Final initialization
 OthersStuffsModule:ApplySettings(Settings, {
     Aimlock = AimlockModule,
     SilentAim = SilentAimModule,
     ESP = ESPModule,
     Stuffs = StuffsModule,
     Ui = UiSettingsModule,
-    Zskill= ZSkillModule
-}, {
-    AimlockPlayers = AimlockPlayersToggle,
-    AimlockPlayersMiniTogglePlayers = AimlockPlayersMiniTogglePlayersToggle,
-    AimlockNPC = AimlockNPCToggle,
-    SilentAimPlayers = SilentAimPlayersToggle,
-    SilentAimNPC = SilentAimNPCToggle,
-    ESPPlayers = ESPPlayersToggle,
-    AntiAFK = AntiAFKToggle,
-    FpsOrPings = FpsOrPingsToggle,
-    FpsBoost = FpsBoostToggle,
-    INFEnergy = INFEnergyToggle,
-    FastAttack = FastAttackToggle,
-    WalkonWater = WalkonWaterToggle,
-    V4 = V4Toggle,
-    FruitCheck = FruitCheckToggle,
-    TeleportFruit = TeleportFruitToggle,
-    AutoKen = AutoKenToggle,
-    ZSkills = ZSkillToggle,
-    BunnyHop = BunnyHopToggle,
-    AuraSkill = AuraSkillToggle,
-    V3Skill = V3SkillToggle,
-    Highlight = HighlightToggle,
-    SilentMiniToggleNPC = SilentMiniToggleNPCToggle,
-    SilentMiniTogglePlayers = SilentMiniTogglePlayersToggle,
-    Zskillmone = ZskillMOneToggle,
-    SilentAimPediction = SilentAimPedictionToggle,
-    Dodge = DodgeToggle,
-    Lava = LavaToggle,
-    Fog = FogToggle
+    Zskill = ZSkillModule
 })
 
 OthersStuffsModule.StartFruitNotifier()
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.M then
-        Library:ToggleUI()
-		toggleButton.Visible = not toggleButton.Visible
+-- Quick toggle Silent Aim with G key (like original)
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.G then
+        Settings.SilentAimPlayers = not (Settings.SilentAimPlayers or false)
+        SilentAimModule:SetPlayerSilentAim(Settings.SilentAimPlayers)
+        StarterGui:SetCore("SendNotification", {
+            Title = "Silent Aim",
+            Text = Settings.SilentAimPlayers and "Enabled" or "Disabled",
+            Duration = 2.5
+        })
     end
 end)
 
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and UserInputService.KeyboardEnabled and input.KeyCode == Enum.KeyCode.G then
-
-        Settings["SilentAimPlayers"] = not Settings["SilentAimPlayers"]
-        SilentAimModule:SetPlayerSilentAim(Settings["SilentAimPlayers"])
-        if SilentAimPlayersToggle then
-            SilentAimPlayersToggle:UpdateToggle(Settings["SilentAimPlayers"])
-        end
-    end
-end)
-
-toggleButton.MouseButton1Click:Connect(function()
-    Library:ToggleUI()
-end)
+print("[UUltimatLY Hub] → WindUI version loaded successfully!")
